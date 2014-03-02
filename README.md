@@ -1,8 +1,9 @@
 BlueJ Extender
 ======
-BlueJ Extender is a modern [Gradle](http://www.gradle.org/)-based framework for developing BlueJ extensions. By leveraging
-the powerful Gradle build-automation framework BlueJ extender gives you the tools you need to develop BlueJ extensions as quickly
-as possible by increasing the focus on the maintainability and portability quality attributes of your extension. Because, remember, [the only way to go fast is to go well](http://butunclebob.com/ArticleS.UncleBob.VehementMediocrity).
+BlueJ Extender is a modern framework for developing BlueJ extensions. By leveraging the powerful
+[Gradle](http://www.gradle.org/) build-automation framework BlueJ extender gives you the tools you need to develop
+BlueJ extensions as quickly as possible by increasing the focus on the maintainability and portability quality attributes
+of your extension. Because, remember, [the only way to go fast is to go well](http://butunclebob.com/ArticleS.UncleBob.VehementMediocrity).
 
 ## Features
 Notable features:
@@ -22,3 +23,11 @@ developing and debugging Swing applications. One-line command for launching *any
 
 ## Usage
 Coming soon...
+
+## Used by
+The following projects are built upon BlueJ Extender:
+
+* **ASEPSiS-BlueJ**<br>Integrates hand-ins and feedback directly into the core experience of BlueJ. This is the project from which
+BlueJ Extender originates. It includes many examples of best-practices when designing BlueJ extensions,
+including how to write effective Cucumber acceptance-tests, how to do proper unit testing, how to extend BlueJ outside the extension API,
+and how to design a testable GUI using modern tools and techniques.
