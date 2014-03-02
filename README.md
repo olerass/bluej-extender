@@ -27,7 +27,7 @@ Coming soon...
 ## Used by
 The following projects are built upon BlueJ Extender:
 
-* **ASEPSiS-BlueJ**<br>Integrates hand-ins and feedback directly into the core experience of BlueJ. This is the project from which
+* **[ASEPSiS-BlueJ](https://github.com/olerass/asepsis-bluej)**<br>Integrates hand-ins and feedback directly into the core experience of BlueJ. This is the project from which
 BlueJ Extender originates. It includes many examples of best-practices when designing BlueJ extensions,
 including how to write effective Cucumber acceptance-tests, how to do proper unit testing, how to extend BlueJ outside the extension API,
 and how to design a testable GUI using modern tools and techniques.
