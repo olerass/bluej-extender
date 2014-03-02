@@ -1,0 +1,84 @@
+subprojects {
+    repositories {
+        flatDir(dir: "${rootProject.projectDir}/local-repo")
+        mavenCentral()
+    }
+}
+
+ext {
+    selectedBluejVer = bluejVerArg()
+    selectedBluejDir = file("bluej-dist/$selectedBluejVer")
+}
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'de.undercouch:gradle-download-task:0.5' // Download with progress in console
+    }
+}
+
+apply plugin: 'base' // To get 'clean' task that deletes 'build' dir
+apply plugin: 'download-task'
+apply from: 'scripts/getBluejTask.gradle'
+apply from: 'scripts/setupTask.gradle'
+apply from: 'scripts/setBluejBuildVerTask.gradle'
+
+task setDefaultBluejVer {
+    description = 'Sets the default BlueJ version to use for all tasks to the specified (-PbluejVer=<ver> or latest) version.'
+
+    doLast {
+        setPropertyFile(file('gradle.properties')) {
+            entry key: 'bluejVer', value: selectedBluejVer
+        }
+        ignoreAllBluejInGitExcept(selectedBluejVer)
+    }
+}
+
+void ignoreAllBluejInGitExcept(ver) {
+    def content = file('.gitignore').text
+    content = content.replaceAll(/!bluej-dist.*/, "!bluej-dist/$ver")
+    file('.gitignore').write(content)
+}
+
+/**
+ * Wrapper for ant.propertyfile that doesn't add a comment line at the top.
+ *
+ * @param filePath The path of the properties file
+ */
+void setPropertyFile(File file, Closure c) {
+    ant.propertyfile(file: file, c)
+    removePropertyFileComment(file)
+}
+
+void removePropertyFileComment(File file) {
+    def content = file.text
+    content = content.replaceFirst(/.*((\r\n)|(\n))/, '')
+    file.write(content)
+}
+
+String bluejVerArg() {
+    if (!hasProperty('bluejVer') || property('bluejVer') == 'latest') {
+        def latestVer = getLatestBluejVersion();
+        logger.quiet("No BlueJ version specified. Selecting latest: $latestVer")
+        return latestVer
+    }
+
+    if (property('bluejVer') =~ /\d[.]\d[.]\d/) {
+        logger.quiet("Selecting BlueJ version: $bluejVer")
+        return property('bluejVer')
+    }
+    else
+        throw new InvalidUserDataException("Invalid BlueJ version: $bluejVer. Please use the following format: major.minor.build (e.g. 3.1.1)")
+}
+
+String getLatestBluejVersion() {
+    return 'http://www.bluej.org/version.info'.toURL().readLines()[0].trim() // Ex: 3.1.1
+}
+
+void replaceStr(String filePath, String target, String replacement) {
+    def content = file(filePath).text
+    content = content.replaceAll(/$target/, "$replacement")
+    file(filePath).write(content)
+}

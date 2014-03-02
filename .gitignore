@@ -1,0 +1,15 @@
+# Gradle
+.gradle/
+build/
+
+# Intellij
+.idea/
+*.iml
+*.iws
+
+# Myself
+todo.txt
+
+# Ignore all versions in bluej-dist except the default one (set by gradle task :setDefaultBluejVer)
+bluej-dist/*
+!bluej-dist/3.1.1

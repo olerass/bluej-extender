@@ -1,0 +1,61 @@
+task getBlueJ {
+    description = 'Downloads the specified (-PbluejVer=<ver> or latest) version of BlueJ into the local BlueJ directory.'
+    outputs.upToDateWhen { selectedBluejDir.exists() }
+
+    doFirst {
+        logger.quiet("Downloading BlueJ version: $selectedBluejVer")
+
+        def installerJar = downloadBluejInstaller(selectedBluejVer, temporaryDir)
+        def distJar = extractBluejDistFromInstaller(installerJar, temporaryDir)
+
+        file(selectedBluejDir).deleteDir()
+        extractBluejDistIntoDir(distJar, selectedBluejDir)
+
+        makeBluejTestFriendly(selectedBluejDir)
+    }
+}
+
+File downloadBluejInstaller(String ver, File targetDir) {
+    def verNoDots = ver.replace('.', '') // Ex: 3.1.1 --> 311
+    def filename = "bluej-${verNoDots}.jar"
+    def bluejUrl = "http://bluej.org/download/files/$filename"
+
+    download {
+        src bluejUrl
+        dest targetDir
+    }
+
+    return file( [targetDir, filename].join(File.separator) )
+}
+
+File extractBluejDistFromInstaller(File installerJar, File targetDir) {
+    def distName = 'bluej-dist.jar'
+    copy {
+        from zipTree(installerJar)
+        into targetDir
+        include distName
+    }
+    return file( [targetDir, distName].join(File.separator) )
+}
+
+void extractBluejDistIntoDir(File distJar, File targetDir) {
+    copy {
+        from zipTree(distJar)
+        into targetDir
+    }
+}
+
+void makeBluejTestFriendly(File dir) {
+    def bluejDefs = file("$dir/lib/bluej.defs")
+
+    setPropertyFile(bluejDefs) {
+        entry key: 'bluej.autoOpenLastProject', value: 'false' // Don't auto-open projects
+        entry key: 'bluej.debug', value: 'true'                // Don't redirect output to file. It messes with Cucumber output
+        entry key: 'blackbox.uuid', value: 'optout'            // Don't show dialog about blackbox participation when starting
+    }
+
+    // Delete any bundled extensions (they just interfere..)
+    def files = file("$dir/lib/extensions").listFiles()
+    files.each { it.delete() }
+}
+

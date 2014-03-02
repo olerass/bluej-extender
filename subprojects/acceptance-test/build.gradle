@@ -1,0 +1,20 @@
+apply from: project.file('cucumber.gradle')
+
+dependencies {
+    testCompile project(':common')
+    testCompile ':jemmy:2.3.1.1'
+    testCompile 'org.easytesting:fest-swing:1.2.1'
+    testCompile 'junit:junit:4.11'
+    testCompile 'com.google.guava:guava:16.0.1'
+}
+
+cucumber {
+    formats = ['pretty', "html:$buildDir/reports/cucumber"]
+    gluePackages = ['com.example.acceptance']
+    environmentVars = ['bluej-jar':file("$selectedBluejDir/lib/bluej.jar").absolutePath]
+    if (project.hasProperty('slowSwing')) environmentVars << ['slowSwing':true]
+    if (project.hasProperty('tag')) tags = [tag]
+}
+cucumber.dependsOn ':bluej-extension:installIntoBluej'
+cucumber.finalizedBy ':bluej-extension:uninstallFromBluej'
+check.finalizedBy cucumber

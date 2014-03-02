@@ -1,0 +1,42 @@
+task setBluejBuildVer {
+    description = 'Sets the BlueJ version to build the extension against to the specified (-PbluejVer=<ver> or latest) version of BlueJ.'
+
+    doLast {
+        deleteOldLibrariesFromLocalRepo()
+        copyLibrariesToLocalRepo();
+        setExtensionProjectToUseNewLibraries();
+    }
+}
+setBluejBuildVer.dependsOn ':getBlueJ'
+
+void deleteOldLibrariesFromLocalRepo() {
+    file('local-repo').eachFile {f ->
+        if (f.getName().startsWith('bluejcore') || f.getName().startsWith('bluejext'))
+            f.delete()
+    }
+}
+
+void copyLibrariesToLocalRepo() {
+    copy {
+        from "$selectedBluejDir/lib/bluejcore.jar"
+        into 'local-repo'
+        rename { f ->
+            "bluejcore-${selectedBluejVer}.jar"
+        }
+    }
+    copy {
+        from "$selectedBluejDir/lib/bluejext.jar"
+        into 'local-repo'
+        rename { f ->
+            "bluejext-${selectedBluejVer}.jar"
+        }
+    }
+}
+
+void setExtensionProjectToUseNewLibraries() {
+    def extProject = project(':bluej-extension')
+    def buildFile = extProject.file('build.gradle').absolutePath
+
+    replaceStr( buildFile, ":bluejext:[^']+", ":bluejext:$selectedBluejVer" )
+    replaceStr( buildFile, ":bluejcore:[^']+", ":bluejcore:$selectedBluejVer" )
+}

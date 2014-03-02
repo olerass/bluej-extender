@@ -1,0 +1,146 @@
+import java.util.regex.Pattern
+
+task setup {
+    description = 'Setup the BlueJ Extender project. Always run this one time on a fresh BlueJ Extender copy.'
+    group = 'build Setup'
+
+    doLast {
+        println '-----------------------------------------------------------------------------------------------------------------------------------'
+        println '| WARNING: this task will permanently alter the Gradle project and is only meant to be run once on a fresh copy of BlueJ Extender!\n'
+        println '-----------------------------------------------------------------------------------------------------------------------------------'
+
+        def console = System.console()
+        def projectName = console.readLine('> Project name: ')
+        def basePackage = console.readLine('> Base Java package for extension (e.g. com.example): ')
+        def useAcceptanceTests = askYesNoQuestion('Use acceptance test module?')
+        def useTravis = askYesNoQuestion('Use Travis continuous integration service?')
+
+        if (!userConfirmsSetup(projectName, useAcceptanceTests, useTravis)) {
+            println 'Canceling setup...'
+            return;
+        }
+
+        setupRootProject(projectName, useAcceptanceTests, useTravis)
+        setupBluejExtensionProject(projectName, basePackage, useAcceptanceTests)
+
+        if (useAcceptanceTests) {
+            setupAcceptanceTestProject(projectName, basePackage)
+            setupCommonProject(basePackage)
+        }
+
+        println 'Setup successful!'
+    }
+}
+
+void setupRootProject(String projectName, boolean useAcceptanceTests, boolean useTravis) {
+    replaceLine('settings.gradle', 'rootProject.name', "rootProject.name = '$projectName'")
+
+    if (!useTravis)
+        file('.travis.yml').delete()
+
+    if (!useAcceptanceTests) {
+        project(':acceptance-test').projectDir.deleteDir()
+        project(':common').projectDir.deleteDir()
+        replaceLine('settings.gradle', "include 'acceptance-test'", "include 'bluej-extension'")
+        deleteLine('settings.gradle', "project(':acceptance-test')")
+        deleteLine('settings.gradle', "project(':common')")
+    }
+}
+
+void setupBluejExtensionProject(String projectName, String basePackage, boolean useAcceptanceTests) {
+    def extProject = project(':bluej-extension')
+
+    def buildFile = extProject.file('build.gradle').absolutePath
+    replaceLine(buildFile, 'archivesBaseName =', "archivesBaseName = '$projectName'" )
+    replaceStr(buildFile, 'com.example.BluejExtension', "${basePackage}.BluejExtension")
+
+    def javaFile = extProject.projectDir.absolutePath + '/src/main/java/BluejExtension.java'
+    setupExtensionJavaFile(projectName, basePackage, javaFile)
+    def javaTestFile = extProject.projectDir.absolutePath + '/src/test/java/BluejExtensionTest.java'
+    setupExtensionJavaFile(projectName, basePackage, javaTestFile)
+
+    if (!useAcceptanceTests)
+        deleteLine(extProject.file('build.gradle').absolutePath, "compile project(':common')")
+}
+
+void setupAcceptanceTestProject(String projectName, String basePackage) {
+    def atProject = project(':acceptance-test')
+    def newPkg = basePackage + '.test.acceptance'
+
+    def buildFile = atProject.file('build.gradle').absolutePath
+    replaceStr( buildFile, 'com.example.acceptance', "$newPkg")
+
+    def stepsFile = atProject.projectDir.absolutePath + '/src/test/java/Steps.java'
+    replaceStr( stepsFile, 'exampleName', "$projectName" )
+    replaceLine( stepsFile, 'import static bluejFrame;', "import static ${newPkg}.Init.bluejFrame;")
+    moveJavaFileToPackage(stepsFile, newPkg + '.steps')
+
+    def initFile = atProject.projectDir.absolutePath + '/src/test/java/Init.java'
+    replaceLine( initFile, 'import commonUtil;', "import ${basePackage}.common.Util;")
+    moveJavaFileToPackage(initFile, newPkg)
+}
+
+void setupCommonProject(String basePackage) {
+    def commonProject = project(':common')
+
+    def cccFile = commonProject.projectDir.absolutePath + '/src/main/java/ClassComponentChooser.java'
+    moveJavaFileToPackage(cccFile, basePackage + '.common')
+    def cccTestFile= commonProject.projectDir.absolutePath + '/src/test/java/ClassComponentChooserTest.java'
+    moveJavaFileToPackage(cccTestFile, basePackage + '.common')
+
+    def utilFile = commonProject.projectDir.absolutePath + '/src/main/java/Util.java'
+    moveJavaFileToPackage(utilFile, basePackage + '.common')
+    def utilTestFile = commonProject.projectDir.absolutePath + '/src/test/java/UtilTest.java'
+    moveJavaFileToPackage(utilTestFile, basePackage + '.common')
+}
+
+void setupExtensionJavaFile(String projectName, String basePackage, String javaFile) {
+    replaceStr( javaFile, 'exampleName', "$projectName" )
+    moveJavaFileToPackage(javaFile, basePackage)
+}
+
+void moveJavaFileToPackage(String targetFile, String pkg) {
+    def packageDirName = pkg.replaceAll('\\.', '/')
+    def newFile = file(targetFile).parentFile.absolutePath + "/$packageDirName/${file(targetFile).name}"
+    ant.move file: targetFile, toFile: newFile
+
+    prependLine(newFile, "package $pkg;\n")
+}
+
+boolean userConfirmsSetup(String projectName, boolean useAcceptanceTests, boolean useTravis) {
+    println '\nPlease confirm the setup:'
+    println " Project name: $projectName"
+    println " Acceptance tests: $useAcceptanceTests"
+    println " Travis CI: $useTravis\n"
+    return askYesNoQuestion("Accept?")
+}
+
+boolean askYesNoQuestion(String question) {
+    def console = System.console()
+    while (true) {
+        String input = console.readLine("> $question (Y/N): ")
+        if (input.toUpperCase() != 'Y' && input.toUpperCase() != 'N')
+            println 'Invalid option, try again!'
+        else {
+            return input.toUpperCase() == 'Y'
+        }
+    }
+}
+
+void prependLine(String filePath, String line) {
+    def content = file(filePath).text
+    content = line + '\n' + content
+    file(filePath).write(content)
+}
+
+void deleteLine(String filePath, String identifier) {
+    def content = file(filePath).text
+    content = content.replaceFirst(/.*${Pattern.quote(identifier)}.*((\r\n)|(\n))?/, '')
+    file(filePath).write(content)
+}
+
+void replaceLine(String filePath, String identifier, String replacement) {
+    def content = file(filePath).text
+    content = content.replaceAll(/.*${Pattern.quote(identifier)}.*/, "$replacement")
+    file(filePath).write(content)
+}

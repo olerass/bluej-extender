@@ -1,0 +1,7 @@
+include 'acceptance-test', 'bluej-extension', 'common'
+
+project(':acceptance-test').projectDir = new File('subprojects/acceptance-test')
+project(':bluej-extension').projectDir = new File('subprojects/bluej-extension')
+project(':common').projectDir = new File('subprojects/common')
+
+rootProject.name = 'exampleName'

@@ -1,0 +1,85 @@
+apply plugin: 'java'
+apply plugin: 'fatjar'
+version = '1.0.0-SNAPSHOT'
+archivesBaseName = 'exampleName'
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'eu.appsatori:gradle-fatjar-plugin:0.2'
+    }
+}
+
+configurations {
+    runWithBlueJ
+    swag
+}
+
+dependencies {
+    compile project(':common')
+    compile ':bluejext:3.1.1', { ext { fatJarExclude = true }}
+    testCompile 'junit:junit:4.11'
+    testCompile 'org.mockito:mockito-all:1.9.5'
+    testCompile 'org.powermock:powermock-module-junit4:1.5.4'
+    testCompile 'org.powermock:powermock-api-mockito:1.5.4'
+    testRuntime ':bluejcore:3.1.1' // Needed for mocking the (final) BlueJ proxy class with PowerMock
+    runWithBlueJ ':swexpl:1.6'
+    runWithBlueJ files("$selectedBluejDir/lib/bluej.jar")
+    swag ':swag:1.6' // Not a real dependency, only used to resolve its path for use in task runWithBlueJ
+}
+
+fatJar {
+    manifest {
+	    attributes 'Main-Class': 'com.example.BluejExtension'
+	}
+}
+
+// Replace default jar task with the fatJar one
+jar.enabled = false
+jar.finalizedBy fatJar
+
+task runWithBlueJ(type: JavaExec) {
+    description = 'Runs the specified (-PbluejVer=<ver> or latest) version of BlueJ with the extension installed and removes it afterwards. Use -Pswxpl to run with Swing Explorer.'
+    group = 'run'
+
+    main = 'bluej.Boot'
+    classpath = configurations.runWithBlueJ
+
+    if (project.hasProperty('swxpl')) {
+        // According to: http://www.swingexplorer.com/?page=documentation
+        main = 'org.swingexplorer.Launcher'
+        args = ['bluej.Boot']
+        def swagJar = configurations.swag.asPath
+        jvmArgs = [
+                "-javaagent:$swagJar",
+                "-Xbootclasspath/a:$swagJar"
+        ]
+    }
+}
+runWithBlueJ.dependsOn 'installIntoBluej'
+runWithBlueJ.finalizedBy 'uninstallFromBluej'
+
+task installIntoBluej(type: Copy) {
+    description = 'Builds and installs the extension into the specified (-PbluejVer=<ver> or latest) version of BlueJ'
+    group = 'run'
+
+    from jar
+    into "$selectedBluejDir/lib/extensions"
+
+    doFirst {
+        logger.quiet("Installing extension into BlueJ $selectedBluejVer")
+    }
+}
+installIntoBluej.dependsOn jar, ':getBlueJ'
+
+task uninstallFromBluej {
+    description = 'Removes the extension, if present, from the specified (-PbluejVer=<ver> or latest) version of BlueJ'
+    group = 'run'
+
+    doLast {
+        logger.quiet "Removing extension from BlueJ $selectedBluejVer"
+        file("$selectedBluejDir/lib/extensions/${jar.archiveName}").delete()
+    }
+}

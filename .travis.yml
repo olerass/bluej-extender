@@ -1,0 +1,18 @@
+language: java
+
+env:
+ - DISPLAY=:99.0 ORG_GRADLE_PROJECT_bluejVer=latest
+ - DISPLAY=:99.0 ORG_GRADLE_PROJECT_bluejVer=3.1.0
+ - DISPLAY=:99.0 ORG_GRADLE_PROJECT_bluejVer=3.0.9 # Release: 22. feb. 2013 - don't test older versions than this
+
+
+before_install:
+ - chmod +x gradlew
+ - "sh -e /etc/init.d/xvfb start"
+
+jdk:
+ - oraclejdk7
+ - openjdk7
+ - openjdk6
+
+script: ./gradlew check -q
