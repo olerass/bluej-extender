@@ -1,22 +1,23 @@
 task getBlueJ {
     description = 'Downloads the specified (-PbluejVer=<ver> or latest) version of BlueJ into the local BlueJ directory.'
-    outputs.upToDateWhen { selectedBluejDir.exists() }
+    group = 'BlueJ'
+    outputs.upToDateWhen { selectedBluejDir.exists() } // Use upToDateWhen to avoid downloading shipped dist initially
 
     doFirst {
-        logger.quiet("Downloading BlueJ version: $selectedBluejVer")
+        logger.quiet "Downloading BlueJ version: $selectedBluejVer"
 
-        def installerJar = downloadBluejInstaller(selectedBluejVer, temporaryDir)
-        def distJar = extractBluejDistFromInstaller(installerJar, temporaryDir)
+        def installerJar = downloadBluejInstaller selectedBluejVer, temporaryDir
+        def distJar = extractBluejDistFromInstaller installerJar, temporaryDir
 
         file(selectedBluejDir).deleteDir()
-        extractBluejDistIntoDir(distJar, selectedBluejDir)
+        extractBluejDistIntoDir distJar, selectedBluejDir
 
-        makeBluejTestFriendly(selectedBluejDir)
+        makeBluejTestFriendly selectedBluejDir
     }
 }
 
 File downloadBluejInstaller(String ver, File targetDir) {
-    def verNoDots = ver.replace('.', '') // Ex: 3.1.1 --> 311
+    def verNoDots = ver.replace '.', '' // E.g: 3.1.1 --> 311
     def filename = "bluej-${verNoDots}.jar"
     def bluejUrl = "http://bluej.org/download/files/$filename"
 
@@ -25,7 +26,8 @@ File downloadBluejInstaller(String ver, File targetDir) {
         dest targetDir
     }
 
-    return file( [targetDir, filename].join(File.separator) )
+    def downloadedFile = file "$targetDir/$filename"
+    return downloadedFile
 }
 
 File extractBluejDistFromInstaller(File installerJar, File targetDir) {
@@ -35,7 +37,9 @@ File extractBluejDistFromInstaller(File installerJar, File targetDir) {
         into targetDir
         include distName
     }
-    return file( [targetDir, distName].join(File.separator) )
+
+    def extractedJar = file "$targetDir/$distName"
+    return extractedJar
 }
 
 void extractBluejDistIntoDir(File distJar, File targetDir) {
@@ -46,7 +50,7 @@ void extractBluejDistIntoDir(File distJar, File targetDir) {
 }
 
 void makeBluejTestFriendly(File dir) {
-    def bluejDefs = file("$dir/lib/bluej.defs")
+    def bluejDefs = file "$dir/lib/bluej.defs"
 
     setPropertyFile(bluejDefs) {
         entry key: 'bluej.autoOpenLastProject', value: 'false' // Don't auto-open projects
@@ -55,7 +59,6 @@ void makeBluejTestFriendly(File dir) {
     }
 
     // Delete any bundled extensions (they just interfere..)
-    def files = file("$dir/lib/extensions").listFiles()
-    files.each { it.delete() }
+    file("$dir/lib/extensions").listFiles().each { it.delete() }
 }
 

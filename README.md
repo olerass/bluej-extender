@@ -1,33 +1,43 @@
 BlueJ Extender
 ======
-BlueJ Extender is a modern framework for developing BlueJ extensions. By leveraging the powerful
-[Gradle](http://www.gradle.org/) build-automation framework BlueJ extender gives you the tools you need to develop
-BlueJ extensions as quickly as possible by increasing the focus on the maintainability and portability quality attributes
-of your extension. Because, remember, [the only way to go fast is to go well](http://butunclebob.com/ArticleS.UncleBob.VehementMediocrity).
+BlueJ Extender is a state-of-the-art framework for developing BlueJ extensions. By leveraging the powerful
+[Gradle](http://www.gradle.org/) build-automation tool BlueJ Extender gives you the tools you need to quickly develop
+high-quality BlueJ extensions. Because remember: [the only way to go fast is to go well](http://butunclebob.com/ArticleS.UncleBob.VehementMediocrity).
 
 ## Features
-Notable features:
-
-* Out-of-the-box support for [Cucumber](https://github.com/cucumber/cucumber-jvm) end-to-end/acceptance tests that
+* Easy to use project template that shows how to use acceptance-tests, unit-tests and BlueJ's label mechanism.
+* Out-of-the-box support for [Cucumber](https://github.com/cucumber/cucumber-jvm) tests that
 interact with your extension through the BlueJ GUI like a normal user would (can be disabled completely if need be).
-* Integrates with [Travis](https://travis-ci.com/) continuous integration server which allows you to test your extension
-on any BlueJ version and any Travis supported JDKs. This of course includes running the end-to-end tests! All this is
+* Integrates with [Travis](https://travis-ci.com/) continuous integration which allows you to easily test your extension
+on multiple BlueJ versions and multiple JDKs. This includes running the Cucumber tests in a headless environment. All this is
 done with very few lines of code in a simple configuration file (can be disabled completely if need be).
-* One-line command for compiling your extension into a BlueJ-compatible extension JAR archive.
-* Support for using any third-party libraries in the BlueJ extension itself as long as they have a separate namespace.
-Everything is automatically compiled into the extension archive.
-* Easily launch *any* BlueJ version (downloaded if needed) with your extension installed for manual testing.
-* Integrates with the well-known [SwingExplorer](http://www.swingexplorer.com/) tool that provides useful utilities for
+* One-line command for compiling your extension into a BlueJ-compatible extension JAR.
+* Transparently explodes third-party libraries into the extension JAR during build and testing.
+* Easily launch *any* BlueJ version with your extension installed for manual testing and automatically cleans up afterwards.
+* Automatically downloads and extracts any BlueJ version to a local directory.
+* Integrates with [SwingExplorer](http://www.swingexplorer.com/) which provides useful utilities for
 developing and debugging Swing applications. One-line command for launching *any* BlueJ version with your extension and SwingExplorer.
-* Extensible architecture that allows fine-grained customization.
+* Supports all major operating systems: Linux, Windows and OS X.
 
 ## Usage
-Coming soon...
+Clone the project (or use the GitHub download features):
+```
+git clone https://github.com/olerass/bluej-extender <project name>
+```
+
+Then run setup and follow the instructions:
+```
+cd <project name>
+gradlew setup -q
+```
+
+When setup run `gradlew tasks` to get a list of available tasks. BlueJ related tasks are in the *BlueJ* group.
 
 ## Used by
 The following projects are built upon BlueJ Extender:
 
-* **[ASEPSiS-BlueJ](https://github.com/olerass/asepsis-bluej)**<br>Integrates hand-ins and feedback directly into the core experience of BlueJ. This is the project from which
+* **[ASEPSiS-BlueJ](https://github.com/olerass/asepsis-bluej)**<br>Prototype extension that (some day) integrates hand-ins
+and feedback directly into the core experience of BlueJ. This is the project from which
 BlueJ Extender originates. It includes many examples of best-practices when designing BlueJ extensions,
-including how to write effective Cucumber acceptance-tests, how to do proper unit testing, how to extend BlueJ outside the extension API,
-and how to design a testable GUI using modern tools and techniques.
+including how to write effective Cucumber acceptance-tests, how to do proper unit testing, how to extend BlueJ outside
+the extension API, and how to design a testable GUI using modern tools and techniques.

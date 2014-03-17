@@ -41,8 +41,8 @@ jar.enabled = false
 jar.finalizedBy fatJar
 
 task runWithBlueJ(type: JavaExec) {
-    description = 'Runs the specified (-PbluejVer=<ver> or latest) version of BlueJ with the extension installed and removes it afterwards. Use -Pswxpl to run with Swing Explorer.'
-    group = 'run'
+    description = 'Runs the specified (-PbluejVer=<ver> or latest) local version of BlueJ with the extension installed and removes it afterwards. Use -Pswxpl to run with Swing Explorer.'
+    group = 'BlueJ'
 
     main = 'bluej.Boot'
     classpath = configurations.runWithBlueJ
@@ -58,12 +58,12 @@ task runWithBlueJ(type: JavaExec) {
         ]
     }
 }
-runWithBlueJ.dependsOn 'installIntoBluej'
-runWithBlueJ.finalizedBy 'uninstallFromBluej'
+runWithBlueJ.dependsOn ':takeBlueJHomeSnapshot', 'installIntoBlueJ'
+runWithBlueJ.finalizedBy ':restoreBlueJHomeSnapshot', 'uninstallFromBlueJ'
 
-task installIntoBluej(type: Copy) {
-    description = 'Builds and installs the extension into the specified (-PbluejVer=<ver> or latest) version of BlueJ'
-    group = 'run'
+task installIntoBlueJ(type: Copy) {
+    description = 'Builds and installs the extension into the specified (-PbluejVer=<ver> or latest) local version of BlueJ'
+    group = 'BlueJ'
 
     from jar
     into "$selectedBluejDir/lib/extensions"
@@ -72,11 +72,11 @@ task installIntoBluej(type: Copy) {
         logger.quiet("Installing extension into BlueJ $selectedBluejVer")
     }
 }
-installIntoBluej.dependsOn jar, ':getBlueJ'
+installIntoBlueJ.dependsOn jar, ':getBlueJ'
 
-task uninstallFromBluej {
-    description = 'Removes the extension, if present, from the specified (-PbluejVer=<ver> or latest) version of BlueJ'
-    group = 'run'
+task uninstallFromBlueJ {
+    description = 'Removes the extension, if present, from the specified (-PbluejVer=<ver> or latest) local version of BlueJ'
+    group = 'BlueJ'
 
     doLast {
         logger.quiet "Removing extension from BlueJ $selectedBluejVer"

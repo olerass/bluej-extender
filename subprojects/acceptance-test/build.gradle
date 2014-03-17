@@ -15,6 +15,6 @@ cucumber {
     if (project.hasProperty('slowSwing')) environmentVars << ['slowSwing':true]
     if (project.hasProperty('tag')) tags = [tag]
 }
-cucumber.dependsOn ':bluej-extension:installIntoBluej'
-cucumber.finalizedBy ':bluej-extension:uninstallFromBluej'
+cucumber.dependsOn ':takeBlueJHomeSnapshot', ':bluej-extension:installIntoBlueJ'
+cucumber.finalizedBy ':restoreBlueJHomeSnapshot', ':bluej-extension:uninstallFromBlueJ'
 check.finalizedBy cucumber

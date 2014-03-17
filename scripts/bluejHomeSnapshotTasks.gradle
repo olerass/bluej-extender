@@ -1,0 +1,52 @@
+task takeBlueJHomeSnapshot {
+    group = '|Private (do not use)'
+    inputs.dir bluejHome()
+    outputs.dir snapshotDir()
+
+    doLast {
+        if (!bluejHome().exists())
+            return
+
+        snapshotDir().mkdirs()
+
+        copy {
+            from bluejHome()
+            into snapshotDir()
+        }
+
+        delete {
+            bluejHome()
+        }
+    }
+}
+
+task restoreBlueJHomeSnapshot {
+    group = '|Private (do not use)'
+    inputs.dir snapshotDir()
+    outputs.dir bluejHome()
+
+    doLast {
+        delete {
+            bluejHome()
+        }
+
+        bluejHome().mkdir()
+
+        copy {
+            from snapshotDir()
+            into bluejHome()
+        }
+
+        delete {
+            snapshotDir()
+        }
+    }
+}
+
+File bluejHome() {
+    return file("${System.getProperty 'user.home'}/bluej");
+}
+
+File snapshotDir() {
+    return file("$rootDir/bluejHomeSnapshot")
+}
