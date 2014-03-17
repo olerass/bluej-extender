@@ -18,6 +18,7 @@ done with very few lines of code in a simple configuration file (can be disabled
 * Integrates with [SwingExplorer](http://www.swingexplorer.com/) which provides useful utilities for
 developing and debugging Swing applications. One-line command for launching *any* BlueJ version with your extension and SwingExplorer.
 * Supports all major operating systems: Linux, Windows and OS X.
+* Supports all Gradle aware IDEs and tools. See [Gradle Tooling](http://www.gradle.org/tooling) for more information.
 
 ## Usage
 Clone the project (or use the GitHub download features):
