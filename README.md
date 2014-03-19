@@ -6,6 +6,7 @@ high-quality BlueJ extensions. Because remember: [the only way to go fast is to 
 
 ## Features
 * Easy to use project template that shows how to use acceptance-tests, unit-tests and BlueJ's label mechanism.
+* Automatically detects and reports [Swing EDT violations](http://docs.oracle.com/javase/tutorial/uiswing/concurrency/dispatch.html) in your extension.
 * Out-of-the-box support for [Cucumber](https://github.com/cucumber/cucumber-jvm) tests that
 interact with your extension through the BlueJ GUI like a normal user would (can be disabled completely if need be).
 * Integrates with [Travis](https://travis-ci.com/) continuous integration which allows you to easily test your extension
