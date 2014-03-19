@@ -27,11 +27,18 @@ git clone https://github.com/olerass/bluej-extender <project name>
 ```
 
 Then run setup and follow the instructions:
+
+**Linux/OS X**
+```
+cd <project name>
+chmod +x gradlew
+./gradlew setup -q
+```
+**Windows**
 ```
 cd <project name>
 gradlew setup -q
 ```
-
 When setup run `gradlew tasks` to get a list of available tasks. BlueJ related tasks are in the *BlueJ* group.
 
 ## Used by
