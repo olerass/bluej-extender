@@ -9,13 +9,12 @@ task setup {
         println '| WARNING: this task will permanently alter the Gradle project and is only meant to be run once on a fresh copy of BlueJ Extender!\n'
         println '-----------------------------------------------------------------------------------------------------------------------------------'
 
-        def console = System.console()
-        def projectName = console.readLine '> Project name: '
-        def basePackage = console.readLine '> Base Java package for extension (e.g. com.example): '
+        def projectName = System.console().readLine '> Project name: '
+        def basePackage = getBasePackageFromUser()
         def useAcceptanceTests = askYesNoQuestion 'Use acceptance test module?'
         def useTravis = askYesNoQuestion 'Use Travis continuous integration service?'
 
-        if (!userConfirmsSetup(projectName, useAcceptanceTests, useTravis)) {
+        if (!userConfirmsSetup(projectName, basePackage, useAcceptanceTests, useTravis)) {
             println 'Canceling setup...'
             return;
         }
@@ -29,6 +28,16 @@ task setup {
         }
 
         println 'Setup successful!'
+    }
+}
+
+String getBasePackageFromUser() {
+    while (true) {
+        def pkg = System.console().readLine '> Base Java package for extension (e.g. com.example, must not start with bluej): '
+        if (pkg.startsWith('bluej'))
+            println 'Package must not start with "bluej". Try again.'
+        else
+            return pkg;
     }
 }
 
@@ -66,6 +75,7 @@ void setupBluejExtensionProject(String projectName, String basePackage, boolean 
 void setupAcceptanceTestProject(String projectName, String basePackage) {
     def atProject = project ':acceptance-test'
     def newPkg = basePackage + '.test.acceptance'
+    def supportPkg = newPkg + '.support'
 
     def buildFile = atProject.file('build.gradle').absolutePath
     replaceStr buildFile, 'com.example.acceptance', "$newPkg"
@@ -77,7 +87,14 @@ void setupAcceptanceTestProject(String projectName, String basePackage) {
 
     def initFile = atProject.projectDir.absolutePath + '/src/test/java/Init.java'
     replaceLine initFile, 'import commonUtil;', "import ${basePackage}.common.Util;"
+    replaceLine initFile, 'import edtOfficer;', "import ${supportPkg}.BluejExtensionEdtOfficer;"
     moveJavaFileToPackage initFile, newPkg
+
+    def edtOfficerFile = atProject.projectDir.absolutePath + '/src/test/java/BluejExtensionEdtOfficer.java'
+    moveJavaFileToPackage edtOfficerFile, supportPkg
+
+    def repaintManagerFile = atProject.projectDir.absolutePath + '/src/test/java/CheckThreadViolationRepaintManager.java'
+    moveJavaFileToPackage repaintManagerFile, supportPkg
 }
 
 void setupCommonProject(String basePackage) {
@@ -107,9 +124,10 @@ void moveJavaFileToPackage(String targetFile, String pkg) {
     prependLine newFile, "package $pkg;\n"
 }
 
-boolean userConfirmsSetup(String projectName, boolean useAcceptanceTests, boolean useTravis) {
+boolean userConfirmsSetup(String projectName, String basePackage, boolean useAcceptanceTests, boolean useTravis) {
     println '\nPlease confirm the setup:'
     println " Project name: $projectName"
+    println " Base package: $basePackage"
     println " Acceptance tests: $useAcceptanceTests"
     println " Travis CI: $useTravis\n"
     return askYesNoQuestion("Accept?")

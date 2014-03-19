@@ -1,4 +1,5 @@
 import commonUtil;
+import edtOfficer;
 import com.google.common.io.Files;
 import cucumber.api.java.After;
 import cucumber.api.java.Before;
@@ -74,6 +75,7 @@ public class Init {
         configureJemmy();
         cleaningRobot = BasicRobot.robotWithNewAwtHierarchy();
         sec = NoExitSecurityManagerInstaller.installNoExitSecurityManager();
+        BluejExtensionEdtOfficer.install();
 
         t = new Thread(new Runnable() {
             public void run() {

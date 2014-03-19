@@ -8,13 +8,47 @@ dependencies {
     testCompile 'com.google.guava:guava:16.0.1'
 }
 
+ErrorOutputListener errOut = new ErrorOutputListener()
 cucumber {
     formats = ['pretty', "html:$buildDir/reports/cucumber"]
     gluePackages = ['com.example.acceptance']
-    environmentVars = ['bluej-jar':file("$selectedBluejDir/lib/bluej.jar").absolutePath]
+    environmentVars = ['bluej-jar':file("$selectedBluejDir/lib/bluej.jar").absolutePath, 'extensionPackage':getExtensionPackage()]
     if (project.hasProperty('slowSwing')) environmentVars << ['slowSwing':true]
     if (project.hasProperty('tag')) tags = [tag]
+    cucumber.logging.addStandardErrorListener(errOut)
 }
 cucumber.dependsOn ':takeBlueJHomeSnapshot', ':bluej-extension:installIntoBlueJ'
-cucumber.finalizedBy ':restoreBlueJHomeSnapshot', ':bluej-extension:uninstallFromBlueJ'
+cucumber.finalizedBy 'checkForErrorOutput', ':restoreBlueJHomeSnapshot', ':bluej-extension:uninstallFromBlueJ'
 check.finalizedBy cucumber
+task checkForErrorOutput {
+    group = '|Private (do not use)'
+    doLast {
+        def errStr = errOut.getOutput()
+        if (errStr.contains('EDT violation'))
+            throw new GradleException(formatErrMsg('EDT violation', errStr))
+        if (errStr.contains('Caused by:') || errStr.contains('Exception in:'))
+            throw new GradleException(formatErrMsg('Exception', errStr))
+    }
+}
+String formatErrMsg(String errType, String errOutput) {
+    return "\n==================================================================================\n" +
+            "$errType detected in Cucumber output. Please review the output and the log below.\n" +
+            "==================================================================================\n" +
+            errOutput
+}
+String getExtensionPackage() {
+    def matcher = (project(':bluej-extension').buildFile.text =~ /'Main-Class': '(.*)\.BluejExtension'/ )
+    return matcher[0][1]
+}
+class ErrorOutputListener implements StandardOutputListener {
+    private ByteArrayOutputStream capturedStdErr = new ByteArrayOutputStream()
+    private PrintWriter pw = new PrintWriter(capturedStdErr)
+    @Override
+    void onOutput(CharSequence output) {
+        pw.write(output.toString());
+    }
+    String getOutput() {
+        pw.close()
+        return capturedStdErr.toString()
+    }
+}
