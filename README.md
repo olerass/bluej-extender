@@ -21,7 +21,7 @@ developing and debugging Swing applications. One-line command for launching *any
 * Supports all major operating systems: Linux, Windows and OS X.
 * Supports all Gradle aware IDEs and tools. See [Gradle Tooling](http://www.gradle.org/tooling) for more information.
 
-## Usage
+## Setup
 Clone the project (or use the GitHub download features):
 ```
 git clone https://github.com/olerass/bluej-extender <project name>
@@ -40,7 +40,26 @@ chmod +x gradlew
 cd <project name>
 gradlew setup -q
 ```
-When setup run `gradlew tasks` to get a list of available tasks. BlueJ related tasks are in the *BlueJ* group.
+
+## Usage
+BlueJ Extender provides a number of Gradle tasks for performing the most common operations. All BlueJ related tasks accept a `-PbluejVer=<ver>` argument specifying the BlueJ version to use for the task. For example, `gradle cucumber -PbluejVer=3.1.0` runs all acceptance-tests on a locally downloaded copy of BlueJ 3.1.0. Without the argument the latest version of BlueJ is used unless overriden by the *setDefaultBlueJVer* task.
+
+####Primary tasks:
+* `runWithBlueJ [-PbluejVer=<ver>] [-Pswxpl]` <br>Runs the specified (or latest) local version of BlueJ with the extension installed and removes it afterwards. Use the `-Pswxpl` switch to run with SwingExplorer.
+* `cucumber [-PbluejVer=<ver>]`<br>Runs all acceptance-tests using the specified (or latest) local version of BlueJ.
+* `check [-PbluejVer=<ver>]`<br>Runs all tests including acceptance-tests using the specified (or latest) local version of BlueJ.
+* `jar`<br>Assembles a BlueJ compatible extension JAR in the *bluej-extension* subproject build folder.
+* `setBlueJBuildVer [-PbluejVer=<ver>]`<br>Sets the BlueJ version to build the extension against to the specified (or latest) version of BlueJ
+* `setDefaultBlueJVer [-PbluejVer=<ver>]`<br>Sets the default BlueJ version to use for all tasks to the specified (or latest) version.
+
+
+####Other tasks:
+* `getBlueJ [-PbluejVer=<ver>]`<br>Downloads the specified (or latest) version of BlueJ into the local BlueJ directory *bluej-dist*.
+* `installIntoBlueJ [-PbluejVer=<ver>]`<br>Builds and installs the extension into the specified (or latest) local version of BlueJ.
+* `uninstallFromBlueJ [-PbluejVer=<ver>] `<br>Removes the extension, if present, from the specified (or latest) local version of BlueJ.
+
+## Travis-CI
+Bluej-Extender comes with a `.travis.yml` file preconfigured to run all tests (including acceptance-tests) on the three latest versions of BlueJ. You can take advantage of this by forking or creating your BlueJ-Extender based extension project on GitHub and then [setup Travis integration](http://docs.travis-ci.com/user/getting-started/).
 
 ## Used by
 The following projects are built upon BlueJ Extender:
